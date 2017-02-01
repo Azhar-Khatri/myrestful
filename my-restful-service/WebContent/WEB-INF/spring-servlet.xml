@@ -1,0 +1,153 @@
+<?xml  version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+        http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd>
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd">
+
+    <mvc:annotation-driven />
+    <context:annotation-config />
+    <context:component-scan base-package="com.my.controllers" />
+   <!-- <mvc:default-servlet-handler/> --> 
+    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <!-- <property name="mediaTypes">
+          <map>
+            <entry key="html" value="text/html"/>
+            <entry key="json" value="application/json"/>
+          </map> 
+        </property>-->
+        <property name="viewResolvers">
+          <list>
+            <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+              <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+               <property name="prefix" value="/WEB-INF/Content/pages/" />
+               <property name="suffix" value=".jsp" />
+            </bean>
+          </list>
+        </property>
+        <property name="defaultViews">
+          <list>
+            <bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
+              <property name="prefixJson" value="true"/>
+            </bean>
+          </list>
+        </property>
+    </bean>
+    <bean id="jspViewResolver"
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass"
+            value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/Content/pages/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+<!--	<resources mapping="/resources/**" location="/resources/" /> -->
+
+ <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/mydb" />
+		<property name="username" value="nemo" />
+		<property name="password" value="nemo" />
+	</bean>	
+
+	<!-- Hibernate 4 SessionFactory Bean definition -->
+	<bean id="hibernate4AnnotatedSessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="annotatedClasses">
+			<list> 
+				<value>com.my.model.Company</value>
+				<value>com.my.model.Distributor</value>
+				<value>com.my.model.Retailer</value>
+				<value>com.my.model.Wallet</value>
+				<value>com.my.model.WalletTransaction</value>						
+				<value>com.my.model.CustomerRegistration</value>	
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.show_sql">true</prop>
+			</props>
+		</property>
+	</bean>	
+
+
+	<!-- <tx:annotation-driven transaction-manager="transactionManager" />
+
+	<beans:bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<beans:property name="sessionFactory"
+			ref="hibernate4AnnotatedSessionFactory" />
+	</beans:bean>-->
+	<!-- Registration -->
+	<bean id="registrationDao" class="com.my.dao.impl.RegistrationDao">
+		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"></property>
+	</bean>
+	<bean id="registrationService" class="com.my.services.impl.RegistrationService">
+		<property name="registrationDao" ref="registrationDao"></property>
+	</bean>
+	<bean id="registrationFacade" class="com.my.facades.impl.RegistrationFacade">
+		<property name="registrationService" ref="registrationService"></property>
+		<property name="walletService" ref="walletService"></property>
+	</bean>
+	
+	<!-- Company -->	
+	<bean id="companyDao" class="com.my.dao.impl.CompanyDao">
+		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"></property>
+	</bean>
+	<bean id="companyService" class="com.my.services.impl.CompanyService">
+		<property name="companyDao" ref="companyDao"></property>
+	</bean>
+	<bean id="companyFacade" class="com.my.facades.impl.CompanyFacade">
+		<property name="companyService" ref="companyService"></property>
+	</bean>
+
+	<!-- Distributor -->	
+	<bean id="distributorDao" class="com.my.dao.impl.DistributorDao">
+		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"></property>
+	</bean>
+	<bean id="distributorService" class="com.my.services.impl.DistributorService">
+		<property name="distributorDao" ref="distributorDao"></property>
+	</bean>
+	<bean id="distributorFacade" class="com.my.facades.impl.DistributorFacade">
+		<property name="distributorService" ref="distributorService"></property>
+	</bean>
+	
+	<!-- Retailer -->	
+	<bean id="retailerDao" class="com.my.dao.impl.RetailerDao">
+		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"></property>
+	</bean>
+	<bean id="retailerService" class="com.my.services.impl.RetailerService">
+		<property name="retailerDao" ref="retailerDao"></property>
+	</bean>
+	<bean id="retailerFacade" class="com.my.facades.impl.RetailerFacade">
+		<property name="retailerService" ref="retailerService"></property>
+	</bean>
+
+	<!-- Wallet -->	
+	<bean id="walletDao" class="com.my.dao.impl.WalletDao">
+		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory"></property>
+	</bean>
+	<bean id="walletService" class="com.my.services.impl.WalletService">
+		<property name="walletDao" ref="walletDao"></property>
+	</bean>
+	<bean id="walletFacade" class="com.my.facades.impl.WalletFacade">
+		<property name="walletService" ref="walletService"></property>
+	</bean>
+</beans> 
